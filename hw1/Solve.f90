@@ -37,7 +37,8 @@
       LIM=KC+IHALFB                                                             
       DO 20 J=KI,LIM                                                            
       JC=IHBP+J-KC                                                              
-   20 B(I,J)=B(I,J)+C*B(K,JC)                                                   
+      B(I,J)=B(I,J)+C*B(K,JC)                                                   
+   20 CONTINUE
    21 CONTINUE                                                                  
    10 CONTINUE                                                                  
       IF(KKK.EQ.1) GO TO 100
@@ -56,8 +57,10 @@
    60 SUM=0.0
       DO 70 J=JC,IHALFB
       SUM=SUM+B(I,J)*R(JI)
-   70 JI=JI+1
-   40 R(I)=R(I)+SUM
+      JI=JI+1
+   70 CONTINUE
+      R(I)=R(I)+SUM
+   40 CONTINUE
 !                                                                               
 !   BACK SOLUTION                                                               
 !                                                                               
@@ -70,7 +73,9 @@
       SUM=0.0
       DO 90 J=KR,MR
       JP=JP+1
-   90 SUM=SUM+B(I,J)*R(JP)
-   80 R(I)=(R(I)-SUM)/B(I,IHBP)
-  100 RETURN
+      SUM=SUM+B(I,J)*R(JP)
+   90 CONTINUE
+      R(I)=(R(I)-SUM)/B(I,IHBP)
+   80 CONTINUE
+      100 RETURN
       END SUBROUTINE
