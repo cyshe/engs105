@@ -8,7 +8,7 @@
     
     pi=4.D0*DATAN(1.D0)
 
-    n = 850
+    n = 150
     a = 0.1
     R = 1.0
 
@@ -16,6 +16,7 @@
     k = 0.5*pi/(n-1)    !dtheta
     beta = (h*h)/(k*k)
 
+    print *, "pi = ", pi
     
     allocate(a_mat(n*n, 2*n+1), b(n*n))
     a_mat = 0.0
@@ -45,7 +46,7 @@
             else if (i == n .and. j == 1) then
                 a_mat(idx, n+1) = 1
 
-                b(idx) = R * cos(3 * k * (j-1))
+                b(idx) = -R * cos(3 * k * (j-1))
 
             else if (i == n .and. j == n) then
                 a_mat(idx, n+1) = 1
@@ -116,7 +117,7 @@
 
     print *, "Write solution to file"    
 
-    open(unit=io, file="850.dat", status="unknown")
+    open(unit=io, file="150.dat", status="unknown")
     do i = 1, n*n
         write(io, *) b(i)
     end do
