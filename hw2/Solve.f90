@@ -23,22 +23,22 @@
 !                                                                               
 !  TRIANGULARIZE MATRIX A USING DOOLITTLE METHOD                                
 !                                                                               
-      DO 10 K=1,NRS
-      PIVOT=B(K,IHBP)     
-      KK=K+1
-      KC=IHBP
-      DO 21 I=KK,NEQ
-      KC=KC-1
-      IF(KC.LE.0) GO TO 10
-      C=-B(I,KC)/PIVOT
-      IF (C.EQ.0.0) GO TO 21
-      B(I,KC)=C
+      DO 10 K=1,NRS                                                             
+      PIVOT=B(K,IHBP)                                                           
+      KK=K+1                                                                    
+      KC=IHBP                                                                   
+      DO 21 I=KK,NEQ                                                            
+      KC=KC-1                                                                   
+      IF(KC.LE.0) GO TO 10                                                      
+      C=-B(I,KC)/PIVOT                                                          
+      IF (C.EQ.0.0) GO TO 21                                                    
+      B(I,KC)=C                                                                 
       KI=KC+1                                                                   
       LIM=KC+IHALFB                                                             
       DO 20 J=KI,LIM                                                            
       JC=IHBP+J-KC                                                              
       B(I,J)=B(I,J)+C*B(K,JC)                                                   
-   20 END DO
+   20 CONTINUE
    21 CONTINUE                                                                  
    10 CONTINUE                                                                  
       IF(KKK.EQ.1) GO TO 100
@@ -58,9 +58,9 @@
       DO 70 J=JC,IHALFB
       SUM=SUM+B(I,J)*R(JI)
       JI=JI+1
-   70 END DO
+   70 CONTINUE
       R(I)=R(I)+SUM
-   40 END DO
+   40 CONTINUE
 !                                                                               
 !   BACK SOLUTION                                                               
 !                                                                               
@@ -74,8 +74,8 @@
       DO 90 J=KR,MR
       JP=JP+1
       SUM=SUM+B(I,J)*R(JP)
-   90 END DO
+   90 CONTINUE
       R(I)=(R(I)-SUM)/B(I,IHBP)
-   80 END DO
+   80 CONTINUE
       100 RETURN
       END SUBROUTINE
