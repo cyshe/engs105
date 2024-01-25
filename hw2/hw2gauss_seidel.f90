@@ -16,10 +16,9 @@ program hw2_gs
     k = 0.5 * pi / (n-1)
     beta = (h/k) * (h/k)
     
-    do while (abs(maxval(b-b_prev)) > 1e-5)
-        print *, maxval(b-b_prev) 
+    do while (maxval(abs(b-b_prev)) > 1e-5)
         b_prev = b
-        b = 0.0
+
         do i = 1, n
             do j = 1, n
                 idx = (j-1)*n + i
@@ -32,49 +31,48 @@ program hw2_gs
                     b(idx) = (2.0 * rij * rij) * b_prev(idx+1) & 
                             + 2.0 * beta * b_prev(idx+n)
 
-                    b(idx) = b(idx) / (-2.0 * (rij * rij + beta))
+                    b(idx) = b(idx) / (2.0 * (rij * rij + beta))
 
                 else if (i == 1 .and. j == n) then
                     b(idx) = (2.0 * rij * rij) * b_prev(idx+1) & 
-                            + beta * b(idx-n) &
-                            + beta * b_prev(idx+n)
+                            + 2.0 * beta * b(idx-n) &
+                            - 2.0 * 9.0 * beta
 
-                    b(idx) = b(idx) / (-2.0 * (rij * rij + beta + 3*beta*a_const))
+                    b(idx) = b(idx) / (2.0 * (rij * rij + beta + 3*beta*a_const))
 
                 else if (i == 1) then
                     b(idx) = (2.0 * rij * rij) * b_prev(idx+1) &
                             + beta * b(idx-n) &
                             + beta * b_prev(idx+n)
 
-                    b(idx) = b(idx) / (-2.0 * (rij * rij + beta))
+                    b(idx) = b(idx) / (2.0 * (rij * rij + beta))
 
                 else if (j == 1) then
-                    b(idx) = (-h/2.0 + rij * rij)* b(idx-1) &
-                            +(h/2.0 + rij * rij) * b_prev(idx+1) &
+                    b(idx) = (-h*rij/2.0 + rij * rij)* b(idx-1) &
+                            +(h* rij/2.0 + rij * rij) * b_prev(idx+1) &
                             + 2.0 * beta * b_prev(idx+n)
 
-                    b(idx) = b(idx) / (-2.0 * (rij * rij + beta))
+                    b(idx) = b(idx) / (2.0 * (rij * rij + beta))
                 
                 else if (j == n) then
-                    b(idx) = (-h/2.0 + rij * rij)* b(idx-1) &
-                            +(h/2.0 + rij * rij) * b_prev(idx+1) &
+                    b(idx) = (-h * rij/2.0 + rij * rij)* b(idx-1) &
+                            +(h * rij/2.0 + rij * rij) * b_prev(idx+1) &
                             + 2.0 * beta * b(idx-n) &
                             - 2 * 9 * beta
 
-                    b(idx) = b(idx) / (-2.0 * (rij * rij + beta + 3 * beta * a_const))
+                    b(idx) = b(idx) / (2.0 * (rij * rij + beta + 3 * beta * a_const))
 
                 else
-                    b(idx) = (-h/2.0 + rij * rij)* b(idx-1) &
-                            +(h/2.0 + rij * rij) * b_prev(idx+1) &
+                    b(idx) = (-h * rij/2.0 + rij * rij)* b(idx-1) &
+                            +(h * rij/2.0 + rij * rij) * b_prev(idx+1) &
                             + beta * b(idx-n) &
                             + beta * b_prev(idx+n)
                     
-                    b(idx) = b(idx) / (-2.0 * (rij * rij + beta))
+                    b(idx) = b(idx) / (2.0 * (rij * rij + beta))
                 end if
             end do
         end do
     end do
-    print *, maxval(b-b_prev)
 
     open(unit=io, file="20gs.dat", status="unknown")
     do i = 1, n*n

@@ -10,7 +10,7 @@
     n = 50
     a = 0.1
     R = 1.0
-    a_const = 15.0
+    a_const = 70.0
 
     h = (R-a)/(n-1)     !dr
     k = 0.5*pi/(n-1)    !dtheta
@@ -28,10 +28,9 @@
         ! print *, "i = ", i
         do j = 1, n
             idx = n*(j-1) + i
+            rij = a + (i-1)*h
             ! print *, "idx = ", idx
             if (i == 1 .and. j == 1) then
-                rij = a + (i-1)*h
-
                 a_mat(idx, n+2) = 2 * rij * rij
                 
                 a_mat(idx, n+1) = -2 * (rij * rij + beta)
@@ -41,8 +40,6 @@
                 b(idx) = 0.0
 
             else if (i == 1 .and. j == n) then
-                rij = a + (i-1)*h
-
                 a_mat(idx, n+2) = 2.0 * rij * rij  
 
                 a_mat(idx, n+1) = -2.0 * (rij * rij + beta + 3*beta * a_const)
@@ -63,8 +60,6 @@
 
     
             else if (i == 1) then
-                rij = a + (i-1)*h
-
                 a_mat(idx, n+2) = 2.0 * rij * rij  
 
                 a_mat(idx, n+1) = -2.0 * (rij * rij + beta)
@@ -80,8 +75,6 @@
                 b(idx) = -R * cos(3 * k * (j-1))
 
             else if (j == 1) then
-                rij = a + (i-1)*h
-
                 a_mat(idx, n) = -h * rij/2 + rij * rij
                 a_mat(idx, n+2) = h * rij/2 + rij * rij  
 
@@ -91,8 +84,6 @@
 
                 b(idx) = 0.0
             else if (j == n) then
-                rij = a + (i-1)*h
-
                 a_mat(idx, n) = -h * rij/2 + rij * rij
                 a_mat(idx, n+2) = h * rij/2 + rij * rij  
 
@@ -102,8 +93,6 @@
                 
                 b(idx) = 2 * 9 * beta
             else
-                rij = a + (i-1)*h
-
                 a_mat(idx, n) = -h * rij/2 + rij * rij
                 a_mat(idx, n+2) = h * rij/2 + rij * rij  
 
@@ -125,7 +114,7 @@
 
     print *, "Write solution to file"    
 
-    open(unit=io, file="50_a15.dat", status="unknown")
+    open(unit=io, file="50_a70.dat", status="unknown")
     do i = 1, n*n
         write(io, *) b(i)
     end do
