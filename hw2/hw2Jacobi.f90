@@ -1,7 +1,7 @@
     program hw2_jacobi
     implicit none
     integer :: i, j, n, idx, io
-    real*8 :: R = 1.0, pi, h, k, a, a_const, rij, beta
+    real*8 :: R = 1.0, pi, h, k, a, a_const, rij, beta, delta, delta_prev
     real*8, allocatable :: b(:), b_prev(:)
     
     n = 10
@@ -10,6 +10,8 @@
 
     a_const = 10.0
     a = 0.1
+    delta_prev = 0.0
+    delta = 1.0
     b_prev = 0.0
     b = 10
     h = (R-a)/(n-1)
@@ -17,6 +19,9 @@
     beta = (h/k) * (h/k)
     
     do while (maxval(abs(b-b_prev)) > 1e-5)
+        delta_prev = delta
+        delta = NORM2(b_prev - b)
+        print *, delta/delta_prev
         b_prev = b
 
         do i = 1, n

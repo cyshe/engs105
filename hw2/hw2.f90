@@ -10,7 +10,7 @@
     n = 50
     a = 0.1
     R = 1.0
-    a_const = 70.0
+    a_const = 1000.0
 
     h = (R-a)/(n-1)     !dr
     k = 0.5*pi/(n-1)    !dtheta
@@ -114,7 +114,7 @@
 
     print *, "Write solution to file"    
 
-    open(unit=io, file="50_a70.dat", status="unknown")
+    open(unit=io, file="50_a1000.dat", status="unknown")
     do i = 1, n*n
         write(io, *) b(i)
     end do
