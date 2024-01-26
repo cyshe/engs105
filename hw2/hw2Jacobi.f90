@@ -1,14 +1,14 @@
     program hw2_jacobi
     implicit none
-    integer :: i, j, n, idx, io
+    integer :: i, j, n, idx, io, iters
     real*8 :: R = 1.0, pi, h, k, a, a_const, rij, beta, delta, delta_prev
     real*8, allocatable :: b(:), b_prev(:)
     
-    n = 10
+    n = 40
     allocate(b(n*n), b_prev(n*n))
     pi = 4.0 * atan(1.0)
 
-    a_const = 10.0
+    a_const = 30.0
     a = 0.1
     delta_prev = 0.0
     delta = 1.0
@@ -17,12 +17,14 @@
     h = (R-a)/(n-1)
     k = 0.5 * pi / (n-1)
     beta = (h/k) * (h/k)
+    iters = 0
     
     do while (maxval(abs(b-b_prev)) > 1e-5)
         delta_prev = delta
         delta = NORM2(b_prev - b)
         print *, delta/delta_prev
         b_prev = b
+        iters = iters + 1
 
         do i = 1, n
             do j = 1, n
@@ -79,7 +81,9 @@
         end do
     end do
 
-    open(unit=io, file="10jacobi.dat", status="unknown")
+    print *, "iteration: ", iters
+
+    open(unit=io, file="40jacobi_a30.dat", status="unknown")
     do i = 1, n*n
         write(io, *) b(i)
     end do
