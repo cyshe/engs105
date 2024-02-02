@@ -1,9 +1,9 @@
     program hw3
     implicit none
 
-    integer :: i, j, n, idx, io
+    integer :: i, j, n, idx, io, it
     real::h, k, a, R, beta, rij, pi, a_const, theta, r_mult
-    real, allocatable :: a_mat(:, :), b(:), rhs_mat(:, :)
+    real, allocatable :: a_mat(:, :), b(:), rhs_mat(:, :), b_prev(:)
     
     pi=4.D0*DATAN(1.D0)
 
@@ -20,10 +20,11 @@
 
     print *, "pi = ", pi
     
-    allocate(a_mat(n*n, 2*n+1), b(n*n), rhs_mat(n*n, 2*n+1))
+    allocate(a_mat(n*n, 2*n+1), b(n*n), rhs_mat(n*n, 2*n+1), b_prev(n*n))
     a_mat = 0.0
     b = 0.0
     rhs_mat = 0.0
+    b_prev = 0.0
     ! assemble matrix .and. rhs
     ! i in direction r, j in direction theta
     print *, "Assemble matrix equation"
@@ -34,50 +35,79 @@
             rij = a + (i-1)*h
             ! print *, "idx = ", idx
             if (i == 1 .and. j == 1) then
-                a_mat(idx, n+2) = 
+                a_mat(idx, n+2) = -r_mult * theta * 2.0 * rij * rij
+
+                a_mat(idx, n+1) = 1 - r_mult * theta * -2.0 * (rij * rij + beta)
                 
-                a_mat(idx, n+1) = 
-                
-                a_mat(idx, 2*n+1) = 
+                a_mat(idx, 2*n+1) = -r_mult * theta * 2.0 *  beta
+
+
+                rhs_mat(idx, n+2) = (1 - theta)  * r_mult * 2.0 * rij * rij
+
+                rhs_mat(idx, n+1) = 1 + (1-theta) * r_mult * -2.0 * (rij * rij + beta)
+
+                rhs_mat(idx, 2*n+1) = (1 - theta) * r_mult * 2 * beta
                 
 
             else if (i == 1 .and. j == n) then
-                a_mat(idx, n+2) =   
+                a_mat(idx, n+1) = 1 
 
-                a_mat(idx, n+1) = 
-                
-                a_mat(idx, 1) = 
+                rhs_mat(idx, n+1) = 1
                 
                 
             else if (i == n .and. j == 1) then
                 a_mat(idx, n+1) = 1
 
+                rhs_mat(idx, n+1) = 1
+
+                b(idx) = -R
 
             else if (i == n .and. j == n) then
                 a_mat(idx, n+1) = 1
 
+                rhs_mat(idx, n+1) = 1
+
+
 
     
             else if (i == 1) then
-                a_mat(idx, n+2) = 2.0 * rij * rij  
+                a_mat(idx, n+2) = -r_mult * theta * 2 * rij * rij 
 
-                a_mat(idx, n+1) = -2.0 * (rij * rij + beta)
+                a_mat(idx, n+1) = 1 - r_mult * theta * -2.0 * (rij * rij + beta)
                 
-                a_mat(idx, 2*n+1) = beta
-                a_mat(idx, 1) = beta
+                a_mat(idx, 2*n+1) = -r_mult * theta * beta
+                a_mat(idx, 1) = -r_mult * theta * beta
+
+
+                rhs_mat(idx, n+2) = (1 - theta) * r_mult * 2.0 * rij * rij
+
+                rhs_mat(idx, n+1) = 1 + (1-theta) * r_mult * -2.0 * (rij * rij + beta)
+
+                rhs_mat(idx, 2*n+1) = (1 - theta) * r_mult * beta
+                rhs_mat(idx, 1) = (1 - theta) * r_mult * beta
 
 
             else if (i == n) then
                 a_mat(idx, n+1) = 1
-                
+
+                rhs_mat(idx, n+1) = 1
+                b(idx) = -R * cos(3 * k * (j-1))
 
             else if (j == 1) then
-                a_mat(idx, n) = -h * rij/2 + rij * rij
-                a_mat(idx, n+2) = h * rij/2 + rij * rij  
+                a_mat(idx, n) = -r_mult * theta * (-h * rij/2.0 + rij * rij)
+                a_mat(idx, n+2) = -r_mult * theta * (h * rij/2.0 + rij * rij) 
 
-                a_mat(idx, n+1) = -2.0 * (rij * rij + beta)
+                a_mat(idx, n+1) = 1 - r_mult * theta * -2.0 * (rij * rij + beta)
                 
-                a_mat(idx, 2*n+1) = 2.0 * beta
+                a_mat(idx, 2*n+1) = -r_mult * theta * 2 * beta
+
+
+                rhs_mat(idx, n) = (1 -theta) * r_mult * (-h * rij/2.0 + rij * rij)
+                rhs_mat(idx, n+2) = (1 - theta) * r_mult * (h * rij/2.0 + rij * rij)
+
+                rhs_mat(idx, n+1) = 1 + (1-theta) * r_mult * -2.0 * (rij * rij + beta)
+
+                rhs_mat(idx, 2*n+1) = (1 - theta) * r_mult * 2 * beta
 
             else if (j == n) then
                 a_mat(idx, n+1) = 1
@@ -85,34 +115,47 @@
                 rhs_mat(idx, n+1) = 1
 
             else
-                a_mat(idx, n) = -r_mult * theta
-                a_mat(idx, n+2) = -r_mult * theta  
+                a_mat(idx, n) = -r_mult * theta * (-h * rij/2.0 + rij * rij)
+                a_mat(idx, n+2) = -r_mult * theta * (h * rij/2.0 + rij * rij)
 
-                a_mat(idx, n+1) = 1 + 4 * r_mult * theta
+                a_mat(idx, n+1) = 1 - r_mult * theta * -2.0 * (rij * rij + beta)
                 
-                a_mat(idx, 2*n+1) = r_mult * theta
-                a_mat(idx, 1) = r_mult * theta
+                a_mat(idx, 2*n+1) = -r_mult * theta * beta
+                a_mat(idx, 1) = -r_mult * theta * beta
 
 
-                rhs_mat(idx, n) = (1 -theta) * r_mult
-                rhs_mat(idx, n+2) = (1 - theta) * r_mult
+                rhs_mat(idx, n) = (1 -theta) * r_mult * (-h * rij/2.0 + rij * rij)
+                rhs_mat(idx, n+2) = (1 - theta) * r_mult * (h * rij/2.0 + rij * rij)
 
-                rhs_mat(idx, n+1) = 1 + 4 * (1-theta) * r_mult
+                rhs_mat(idx, n+1) = 1 + (1-theta) * r_mult * -2.0 * (rij * rij + beta)
 
-                rhs_mat(idx, 2*n+1) = (1 - theta) * r_mult
-                rhs_mat(idx, 1) = (1 - theta) * r_mult
+                rhs_mat(idx, 2*n+1) = (1 - theta) * r_mult * beta
+                rhs_mat(idx, 1) = (1 - theta) * r_mult * beta
             end if
         end do
-    end do
-    
+    end do 
     
 
     print *, "Solve matrix equation"
-    call solve(3, a_mat, b, n*n, n, n*n, 2*n+1)
+    
+    do i = 1, 100
+        do j = 1, n*n
+            b_prev(j) = b(j)
+        end do
+        b = 0.0
+        do j = 1, n*n
+            do it = 1, 2*n+1
+                if (j + it - n - 1 > 0 .and. j + it - n - 1 <= n*n) then
+                    b(j) = b(j) + rhs_mat(j, it) * b_prev(j + it - n - 1)
+                end if
+            end do
+        end do
+        call solve(3, a_mat, b, n*n, n, n*n, 2*n+1)
+    end do
 
     print *, "Write solution to file"    
 
-    open(unit=io, file="200_a30.dat", status="unknown")
+    open(unit=io, file="output.dat", status="unknown")
     do i = 1, n*n
         write(io, *) b(i)
     end do
