@@ -2,8 +2,8 @@
     implicit none
 
     integer :: i, j, n, idx, io
-    real::h, k, a, R, beta, rij, pi, a_const
-    real, allocatable :: a_mat(:, :), b(:)
+    real::h, k, a, R, beta, rij, pi, a_const, theta, r_mult
+    real, allocatable :: a_mat(:, :), b(:), rhs_mat(:, :)
     
     pi=4.D0*DATAN(1.D0)
 
@@ -11,6 +11,8 @@
     a = 0.1
     R = 1.0
     a_const = 30.0
+    theta = 0.7
+    r_mult = 1.0        !r = Dk/h^2 in FD equation
 
     h = (R-a)/(n-1)     !dr
     k = 0.5*pi/(n-1)    !dtheta
@@ -18,9 +20,10 @@
 
     print *, "pi = ", pi
     
-    allocate(a_mat(t*n*n, 2*n+1), b(t*n*n))
+    allocate(a_mat(n*n, 2*n+1), b(n*n), rhs_mat(n*n, 2*n+1))
     a_mat = 0.0
     b = 0.0
+    rhs_mat = 0.0
     ! assemble matrix .and. rhs
     ! i in direction r, j in direction theta
     print *, "Assemble matrix equation"
@@ -31,32 +34,28 @@
             rij = a + (i-1)*h
             ! print *, "idx = ", idx
             if (i == 1 .and. j == 1) then
-                a_mat(idx, n+2) = 2 * rij * rij
+                a_mat(idx, n+2) = 
                 
-                a_mat(idx, n+1) = -2 * (rij * rij + beta)
+                a_mat(idx, n+1) = 
                 
-                a_mat(idx, 2*n+1) = 2 * beta
+                a_mat(idx, 2*n+1) = 
                 
-                b(idx) = 0.0
 
             else if (i == 1 .and. j == n) then
-                a_mat(idx, n+2) = 2.0 * rij * rij  
+                a_mat(idx, n+2) =   
 
-                a_mat(idx, n+1) = -2.0 * (rij * rij + beta + 3*beta * a_const)
+                a_mat(idx, n+1) = 
                 
-                a_mat(idx, 1) = 2.0 * beta
+                a_mat(idx, 1) = 
                 
-                b(idx) = 2.0 * 9.0 * beta
                 
             else if (i == n .and. j == 1) then
                 a_mat(idx, n+1) = 1
 
-                b(idx) = -R * cos(3 * k * (j-1))
 
             else if (i == n .and. j == n) then
                 a_mat(idx, n+1) = 1
 
-                b(idx) = 0.0
 
     
             else if (i == 1) then
@@ -67,12 +66,10 @@
                 a_mat(idx, 2*n+1) = beta
                 a_mat(idx, 1) = beta
 
-                b(idx) = 0.0
 
             else if (i == n) then
                 a_mat(idx, n+1) = 1
                 
-                b(idx) = -R * cos(3 * k * (j-1))
 
             else if (j == 1) then
                 a_mat(idx, n) = -h * rij/2 + rij * rij
@@ -82,27 +79,28 @@
                 
                 a_mat(idx, 2*n+1) = 2.0 * beta
 
-                b(idx) = 0.0
             else if (j == n) then
-                a_mat(idx, n) = -h * rij/2 + rij * rij
-                a_mat(idx, n+2) = h * rij/2 + rij * rij  
+                a_mat(idx, n+1) = 1
 
-                a_mat(idx, n+1) = -2 * (rij * rij + beta + 3*beta * a_const)
-                
-                a_mat(idx, 1) = 2 * beta
-                
-                b(idx) = 2 * 9 * beta
+                rhs_mat(idx, n+1) = 1
+
             else
-                a_mat(idx, n) = -h * rij/2 + rij * rij
-                a_mat(idx, n+2) = h * rij/2 + rij * rij  
+                a_mat(idx, n) = -r_mult * theta
+                a_mat(idx, n+2) = -r_mult * theta  
 
-                a_mat(idx, n+1) = -2 * (rij * rij + beta)
+                a_mat(idx, n+1) = 1 + 4 * r_mult * theta
                 
-                a_mat(idx, 2*n+1) = beta
-                a_mat(idx, 1) = beta
+                a_mat(idx, 2*n+1) = r_mult * theta
+                a_mat(idx, 1) = r_mult * theta
 
-                b(idx) = 0.0
 
+                rhs_mat(idx, n) = (1 -theta) * r_mult
+                rhs_mat(idx, n+2) = (1 - theta) * r_mult
+
+                rhs_mat(idx, n+1) = 1 + 4 * (1-theta) * r_mult
+
+                rhs_mat(idx, 2*n+1) = (1 - theta) * r_mult
+                rhs_mat(idx, 1) = (1 - theta) * r_mult
             end if
         end do
     end do
