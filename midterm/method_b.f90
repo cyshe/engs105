@@ -33,7 +33,7 @@
             b_mat1(i, 3) = 0.0
 
             b_mat2(i, 1) = 0.0
-            b_mat2(i, 2) = 0.0 
+            b_mat2(i, 2) = 0.0
             b_mat2(i, 3) = 0.0
 
         else if (i == n) then
@@ -45,19 +45,23 @@
             b_mat2(i, 2) = 0.0
             b_mat2(i, 3) = 0.0
         else
-            b_mat1(i, 1) = 3 * r / 2
-            b_mat1(i, 2) = 1 - r
-            b_mat1(i, 3) = 3 * r / 2
+            a_mat(i, 1) = -5 * r / 12
+            a_mat(i, 2) = 1 + 5 * r / 6
+            a_mat(i, 3) = -5 * r / 12
 
-            b_mat2(i, 1) = -r / 2
-            b_mat2(i, 2) = r
-            b_mat2(i, 3) = -r / 2
+            b_mat1(i, 1) = 2 * r / 3
+            b_mat1(i, 2) = 1 - 4 * r/3
+            b_mat1(i, 3) = 2 * r / 3
+
+            b_mat2(i, 1) = -r / 12
+            b_mat2(i, 2) = r / 6
+            b_mat2(i, 3) = -r / 12
         end if
     end do
 
     call solve(1, a_mat, b, n, 1, n, 3)
     print *, "Solve matrix equation"
- 
+
     ! initialize b and b_prev
     do i = 1, n
         b(i) = exp(-((i-1) * h - 5)**2/ (2.0 * sigma **2))
@@ -91,7 +95,15 @@
         b = rhs
 
         if (j == 1) then
-            open(unit=io, file="a_t1.dat", status="unknown")
+            open(unit=io, file="b_t1.dat", status="unknown")
+            do i = 1, n
+                write(io, *) b(i)
+            end do
+            close(io)
+        end if
+        
+        if (j == 2) then
+            open(unit=io, file="b_t2.dat", status="unknown")
             do i = 1, n
                 write(io, *) b(i)
             end do
@@ -99,7 +111,7 @@
         end if 
 
         if (j == 30) then
-            open(unit=io, file="a_t30.dat", status="unknown")
+            open(unit=io, file="b_t30.dat", status="unknown")
             do i = 1, n
                 write(io, *) b(i)
             end do
