@@ -1,4 +1,4 @@
-    program method_a
+    program method_b
     implicit none
 
     integer :: i, j, n, io
@@ -8,7 +8,7 @@
     L = 10.0
     D = 0.5
     h = 0.1
-    dt = 0.05
+    dt = 0.01
     r = D*dt/h**2
     sigma = 0.1
 
@@ -71,7 +71,7 @@
 
 
 
-    do j = 1, 30
+    do j = 1, 150
         ! calculate rhs vector from previous time steps
         do i = 1, n
             if (i == 1) then
@@ -102,15 +102,24 @@
             close(io)
         end if
         
-        if (j == 2) then
-            open(unit=io, file="b_t2.dat", status="unknown")
+        if (j == 4) then
+            open(unit=io, file="b_t4.dat", status="unknown")
             do i = 1, n
                 write(io, *) b(i)
             end do
             close(io)
         end if 
 
-        if (j == 30) then
+        if (j == 15) then
+            open(unit=io, file="b_t15.dat", status="unknown")
+            do i = 1, n
+                write(io, *) b(i)
+            end do
+            close(io)
+        end if
+
+
+        if (j == 150) then
             open(unit=io, file="b_t30.dat", status="unknown")
             do i = 1, n
                 write(io, *) b(i)
@@ -120,4 +129,4 @@
 
     end do
 
-    end program method_a
+    end program method_b

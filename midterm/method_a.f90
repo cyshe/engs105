@@ -8,7 +8,7 @@
     L = 10.0
     D = 0.5
     h = 0.1
-    dt = 0.05
+    dt = 0.01
     r = D*dt/h**2
     sigma = 0.1
 
@@ -67,7 +67,7 @@
 
 
 
-    do j = 1, 30
+    do j = 1, 150
         ! calculate rhs vector from previous time steps
         do i = 1, n
             if (i == 1) then
@@ -97,8 +97,24 @@
             end do
             close(io)
         end if 
+        
+        if (j == 5) then
+            open(unit=io, file="a_t5.dat", status="unknown")
+            do i = 1, n
+                write(io, *) b(i)
+            end do
+            close(io)
+        end if
 
-        if (j == 30) then
+        if (j == 15) then
+            open(unit=io, file="a_t15.dat", status="unknown")
+            do i = 1, n
+                write(io, *) b(i)
+            end do
+            close(io)
+        end if
+
+        if (j == 150) then
             open(unit=io, file="a_t30.dat", status="unknown")
             do i = 1, n
                 write(io, *) b(i)
