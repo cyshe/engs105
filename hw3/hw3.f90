@@ -1,7 +1,7 @@
     program hw3
     implicit none
 
-    integer :: i, j, n, idx, io = 6, it, timesteps = 5000
+    integer :: i, j, n, idx, io = 6, it, timesteps = 900
     real::h, k, a, R, beta, rij, pi, a_const, theta, r_mult, temp
     real, allocatable :: a_mat(:, :), b(:), rhs_mat(:, :), b_prev(:), p1(:), p2(:), p3(:), p4(:), p5(:)
     
@@ -11,8 +11,8 @@
     a = 0.1
     R = 1.0
     a_const = 30.0
-    theta = 0.0
-    r_mult = 0.25        !r = Dk/h^2 in FD equation
+    theta = 0.6
+    r_mult = 10.0       !r = Dk/h^2 in FD equation
 
     h = (R-a)/(n-1)     !dr
     k = 0.5*pi/(n-1)    !dtheta
