@@ -1,16 +1,19 @@
     program hw5
     implicit none
 
-    integer :: io=6, n_ele=1089, n_node=969, n_bounds=64, l, i, j, ii, jj, jb, hbw=6
+    integer :: io=6, n_ele=1089, n_node=969, n_bounds=64, l, i, j, ii, jj, jb, hbw=50, m
     integer, allocatable :: ele(:, :)
     real, allocatable :: node(:, :), bc(:, :), heating_rate(:, :), a(:, :), b(:), a_ele(:, :), b_ele(:), dx(:), dy(:)
-    real :: x1, x2, x3, x4, y1, y2, y3, y4, area, dx1, dx2, dx3, dy1, dy2, dy3, ke = 0, material(6), gauss_points(4, 2)
+    real :: x1, x2, x3, x4, y1, y2, y3, y4, area, dx1, dx2, dx3, dy1, dy2, dy3, ke = 0, km, mm, heating_rate_m
+    real :: material(6,3), gauss_points(4, 2), z, e, phi(4), dpx(4), dpy(4), dj, xs(4), ys(4)
 
     allocate(ele(n_ele, 6), node(n_node, 3), bc(n_bounds, 7), heating_rate(n_ele, 3))
     allocate(a(n_node, n_node), b(n_node), a_ele(4, 4), b_ele(4), dx(n_ele), dy(n_ele))
 
     ele = 0
     node = 0
+    bc = 0
+    heating_rate = 0
     a = 0
     b = 0
     a_ele = 0
@@ -18,12 +21,26 @@
     dx = 0
     dy = 0
 
-    material(1) = 200
-    material(2) = 2001.4
-    material(3) = 0
-    material(4) = 0
-    material(5) = 1482.5
-    material(6) = 0
+    material(1, 1) = 0.210
+    material(2, 1) = 0.642
+    material(3, 1) = 0.436
+    material(4, 1) = 0.561
+    material(5, 1) = 0.515
+    material(6 ,1) = 0.642
+
+    material(1, 2) = 2.12e6
+    material(2, 2) = 3.72e6
+    material(3, 2) = 2.25e6
+    material(4, 2) = 3.98e6
+    material(5, 2) = 4.35e6
+    material(6 ,2) = 3.72e6
+
+    material(1, 3) = 200
+    material(2, 3) = 2001.4
+    material(3, 3) = 0
+    material(4, 3) = 0
+    material(5, 3) = 1482.5
+    material(6 ,3) = 0
     
     gauss_points(1, 1) = -0.5773502
     gauss_points(1, 2) = -0.5773502
@@ -48,7 +65,7 @@
     close(io)
     
     open(newunit=io, file="bpeltr4.dat", status="old", action="read")
-    do i = 1, n_node
+    do i = 1, n_bounds
         read(io, *) bc(i, :)
     end do
     close(io)
@@ -61,9 +78,9 @@
 
     ! element assembly
     do l = 1, n_ele
-        if (ele(l, 4) == ele(l,5)) then
+        if (ele(l,4) == ele(l,5)) then
             ! triangular element
-            ke = material(ele(l, 6))
+            ke = material(ele(l, 6), 3)
 
             x1 = node(ele(l, 2), 2)
             x2 = node(ele(l, 3), 2)
@@ -114,43 +131,77 @@
             end do
         else 
             ! quadrilateral element
-            ke = material(ele(l, 6))
-
             x1 = node(ele(l, 2), 2)
             x2 = node(ele(l, 3), 2)
             x3 = node(ele(l, 4), 2)
             x4 = node(ele(l, 5), 2)
+            xs(1) = x1
+            xs(2) = x2
+            xs(3) = x3
+            xs(4) = x4
 
             y1 = node(ele(l, 2), 3)
             y2 = node(ele(l, 3), 3)
             y3 = node(ele(l, 4), 3)
             y4 = node(ele(l, 5), 3)
 
+            ys(1) = y1
+            ys(2) = y2
+            ys(3) = y3
+            ys(4) = y4
+
+            a_ele = 0
+            b_ele = 0
+
             do m = 1, 4
                 z = gauss_points(m, 1)
                 e = gauss_points(m, 2)
+                phi = 0
+                dpx = 0
+                dpy = 0
+                dj = 0
+                heating_rate_m = 0
+                call basis(phi, dpx, dpy, dj, z, e, xs, ys)
 
-                call basis(phi, dpx, dpy, dj, z, e, [x1, x2, x3, x4], [y1, y2, y3, y4])
+                ! assemble coefficients 
+                do i = 1, 4
+                    km = km + material(ele(l, 6), 2) * phi(i)
+                    mm = mm + material(ele(l, 6), 1) * phi(i)
+                    heating_rate_m = heating_rate_m + heating_rate(l, 3) * phi(i)
+                end do
+
 
                 do i = 1, 4
                     do j = 1, 4
-                        
-                    end do      
+                    a_ele(i, j) = a_ele(i, j) + dj * (-km * (dpx(i) * dpx(j) + dpy(i) * dpy(j)) - mm * phi(i) * phi(j))
+                    end do
+                    b_ele(i) = b_ele(i) + dj * heating_rate_m * phi(i) 
                 end do
-
-                
-
-
             end do 
+            do i = 1, 4
+                ii = ele(l, i+1)
+                b(ii) = b(ii) + b_ele(i)
+                do j = 1, 4
+                    jj = ele(l, j+1)
+
+                    jb = (hbw+ 1) + jj - ii
+
+                    a(ii, jb) = a(ii, jb) + a_ele(i, j)
+                end do
+            end do
         end if 
        
     end do
 
     ! apply boundary conditions
-    do i = 1, n_node
-        if then
-        end if 
-    end do
+    do i = 1, n_bounds
+        ii = bc(i, 2)
+        do j = 1, n_node
+            a(ii, j) = 0
+        end do
+        a(ii, hbw+1) = 1
+    end do 
+
 
     ! solve for the unknowns
     call solve(1, a, b, n_node, hbw, n_node, 2*hbw+1)
@@ -162,6 +213,7 @@
         write(7, *) b(i)
     end do 
     close(7)
+    
 
 
 
@@ -173,9 +225,15 @@
 
     subroutine basis(phi, dpx, dpy, dj, z, e, xl, yl)
     
-    real, intent(in) :: z, e, xl, yl
-    real, intent(out) :: phi(4), dpx(4), dpy(4), dj(4, 4)
-    real :: x, y, dxz, dxe, dye, dx, dy
+    real, intent(in) :: z, e, xl(4), yl(4)
+    real, intent(out) :: phi(4), dpx(4), dpy(4), dj
+    real :: dxz, dyz, dxe, dye, dpz(4), dpe(4)
+    integer :: i
+    
+    dxz = 0
+    dyz = 0
+    dxe = 0
+    dye = 0
 
     phi(1) = (1-z)*(1-e)/4
     phi(2) = (1+z)*(1-e)/4
