@@ -196,10 +196,12 @@
     ! apply boundary conditions
     do i = 1, n_bounds
         ii = bc(i, 2)
-        do j = 1, n_node
+        print *, ii
+        do j = 1, 2*hbw+1
             a(ii, j) = 0
         end do
         a(ii, hbw+1) = 1
+        b(ii) = 0
     end do 
 
 

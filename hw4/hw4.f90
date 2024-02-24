@@ -91,7 +91,7 @@
             a(i, hbw + 1) = 1
             b(i) = 0
 
-        else if (i == 5 .or. i == 10 .or. i == 15 .or. i == 20 .or. i == 24 .or. i == 27.or. i == 28 .or. i == 25 .or. i == 21) then
+        else if (i == 5 .or. i == 10 .or. i == 15 .or. i == 20 .or. i == 24 .or. i == 27.or. i == 28 .or. i == 25) then
             do j = 1, hbw*2 +1  
                 a(i, j) = 0
             end do
@@ -114,7 +114,7 @@
     call solve(2, a, b, n_node, hbw, n_node, 2*hbw+1)
 
     ! output solution
-    open(unit=7, file="output_2", status="unknown")
+    open(unit=7, file="output_1", status="unknown")
     do i = 1, n_node
         write(7, *) b(i)
     end do 
@@ -140,22 +140,19 @@
 
         area = 0.5 * (x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2))
         
-        dx(l) = dx(l) + b(ele(l, 2)) * dy1 + b(ele(l, 3)) * dy2 + b(ele(l, 4)) * dy3
-        dy(l) = dy(l) + b(ele(l, 2)) * dx1 + b(ele(l, 3)) * dx2 + b(ele(l, 4)) * dx3
+        dx(l) = b(ele(l, 2)) * dy1 + b(ele(l, 3)) * dy2 + b(ele(l, 4)) * dy3
+        dy(l) = -b(ele(l, 2)) * dx1 - b(ele(l, 3)) * dx2 - b(ele(l, 4)) * dx3
     end do
 
 
-
-
-
     ! output derivatives
-    open(unit=8, file="flow_x_2.dat", status="unknown")
+    open(unit=8, file="flow_x_1.dat", status="unknown")
     do i = 1, n_ele
         write(8, *) dy(i)
     end do
     close(8)
 
-    open(unit=9, file="flow_y_2.dat", status="unknown")
+    open(unit=9, file="flow_y_1.dat", status="unknown")
     do i = 1, n_ele
         write(9, *) -dx(i)
     end do
