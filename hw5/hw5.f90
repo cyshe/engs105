@@ -21,6 +21,7 @@
     dx = 0
     dy = 0
 
+    ! kappa, c* rho, m for each material
     material(1, 1) = 0.210
     material(2, 1) = 0.642
     material(3, 1) = 0.436
@@ -80,7 +81,8 @@
     do l = 1, n_ele
         if (ele(l,4) == ele(l,5)) then
             ! triangular element
-            ke = material(ele(l, 6), 3)
+            mm = material(ele(l, 6), 3)
+            ke = material(ele(l, 6), 1)
 
             x1 = node(ele(l, 2), 2)
             x2 = node(ele(l, 3), 2)
@@ -100,22 +102,22 @@
 
             area = 0.5 * (x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2))
 
-            a_ele(1, 1) = - (dy1 * dy1)/(4 * area) - (dx1 * dx1)/(4 * area) + (ke * ke * area)/6
-            a_ele(1, 2) = - (dy1 * dy2)/(4 * area) - (dx1 * dx2)/(4 * area) + (ke * ke * area)/12
-            a_ele(1, 3) = - (dy1 * dy3)/(4 * area) - (dx1 * dx3)/(4 * area) + (ke * ke * area)/12
+            a_ele(1, 1) = - ke * (dy1 * dy1)/(4 * area) - ke * (dx1 * dx1)/(4 * area) - (mm * area)/6
+            a_ele(1, 2) = - ke * (dy1 * dy2)/(4 * area) - ke * (dx1 * dx2)/(4 * area) - (mm * area)/12
+            a_ele(1, 3) = - ke * (dy1 * dy3)/(4 * area) - ke * (dx1 * dx3)/(4 * area) - (mm * area)/12
 
 
-            a_ele(2, 1) = - (dy2 * dy1)/(4 * area) - (dx2 * dx1)/(4 * area) + (ke * ke * area)/12
-            a_ele(2, 2) = - (dy2 * dy2)/(4 * area) - (dx2 * dx2)/(4 * area) + (ke * ke * area)/6
-            a_ele(2, 3) = - (dy2 * dy3)/(4 * area) - (dx2 * dx3)/(4 * area) + (ke * ke * area)/12
+            a_ele(2, 1) = - ke * (dy2 * dy1)/(4 * area) - ke * (dx2 * dx1)/(4 * area) - (mm * area)/12
+            a_ele(2, 2) = - ke * (dy2 * dy2)/(4 * area) - ke * (dx2 * dx2)/(4 * area) - (mm * area)/6
+            a_ele(2, 3) = - ke * (dy2 * dy3)/(4 * area) - ke * (dx2 * dx3)/(4 * area) - (mm * area)/12
 
-            a_ele(3, 1) = - (dy3 * dy1)/(4 * area) - (dx3 * dx1)/(4 * area) + (ke * ke * area)/12
-            a_ele(3, 2) = - (dy3 * dy2)/(4 * area) - (dx3 * dx2)/(4 * area) + (ke * ke * area)/12
-            a_ele(3, 3) = - (dy3 * dy3)/(4 * area) - (dx3 * dx3)/(4 * area) + (ke * ke * area)/6
+            a_ele(3, 1) = - ke * (dy3 * dy1)/(4 * area) - ke * (dx3 * dx1)/(4 * area) - (mm * area)/12
+            a_ele(3, 2) = - ke * (dy3 * dy2)/(4 * area) - ke * (dx3 * dx2)/(4 * area) - (mm * area)/12
+            a_ele(3, 3) = - ke * (dy3 * dy3)/(4 * area) - ke * (dx3 * dx3)/(4 * area) - (mm * area)/6
 
-            b_ele(1) = 0
-            b_ele(2) = 0
-            b_ele(3) = 0
+            b_ele(1) = -heating_rate(l, 3) * area / 3
+            b_ele(2) = -heating_rate(l, 3) * area / 3
+            b_ele(3) = -heating_rate(l, 3) * area / 3
 
             do i = 1, 3
                 ii = ele(l, i+1)
@@ -195,31 +197,25 @@
 
     ! apply boundary conditions
     do i = 1, n_bounds
-        ii = bc(i, 2)
-        print *, ii
-        do j = 1, 2*hbw+1
+        ii = int(bc(i, 2))
+        do j = 1, 2 * hbw + 1
             a(ii, j) = 0
         end do
         a(ii, hbw+1) = 1
         b(ii) = 0
     end do 
-
+    
 
     ! solve for the unknowns
     call solve(1, a, b, n_node, hbw, n_node, 2*hbw+1)
     call solve(2, a, b, n_node, hbw, n_node, 2*hbw+1)
-
+    
     ! output solution
     open(unit=7, file="output_2", status="unknown")
     do i = 1, n_node
         write(7, *) b(i)
     end do 
     close(7)
-    
-
-
-
-
 
     deallocate(ele, node, a, b, a_ele, b_ele, dx, dy)
     end program hw5
