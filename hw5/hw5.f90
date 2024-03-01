@@ -205,6 +205,10 @@
         a(ii, hbw+1) = 1
         b(ii) = 0
     end do 
+    
+    do i = 1, n_bounds
+        ii = int(bc(i, 2))
+        b(ii) = b(ii) - 0.5 * bc(i, )
 
     ! solve for the unknowns
     call solve(1, a, b, n_node, hbw, n_node, 2*hbw+1)
