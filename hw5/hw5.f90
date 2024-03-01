@@ -8,7 +8,7 @@
     real :: material(6,3), gauss_points(4, 2), z, e, phi(4), dpx(4), dpy(4), dj, xs(4), ys(4)
 
     allocate(ele(n_ele, 6), node(n_node, 3), bc(n_bounds, 7), heating_rate(n_ele, 3))
-    allocate(a(n_node, n_node), b(n_node), a_ele(4, 4), b_ele(4), dx(n_ele), dy(n_ele))
+    allocate(a(n_node, 2*hbw+1), b(n_node), a_ele(4, 4), b_ele(4), dx(n_ele), dy(n_ele))
 
     ele = 0
     node = 0
@@ -34,14 +34,14 @@
     material(3, 2) = 2.25e6
     material(4, 2) = 3.98e6
     material(5, 2) = 4.35e6
-    material(6 ,2) = 3.72e6
+    material(6, 2) = 3.72e6
 
     material(1, 3) = 200
     material(2, 3) = 2001.4
     material(3, 3) = 0
     material(4, 3) = 0
     material(5, 3) = 1482.5
-    material(6 ,3) = 0
+    material(6, 3) = 0
     
     gauss_points(1, 1) = -0.5773502
     gauss_points(1, 2) = -0.5773502
@@ -81,8 +81,8 @@
     do l = 1, n_ele
         if (ele(l,4) == ele(l,5)) then
             ! triangular element
-            mm = material(ele(l, 6), 3)
-            ke = material(ele(l, 6), 1)
+            mm = material(ele(l, 6)-2, 3)
+            ke = material(ele(l, 6)-2, 1)
 
             x1 = node(ele(l, 2), 2)
             x2 = node(ele(l, 3), 2)
@@ -118,7 +118,7 @@
             b_ele(1) = -heating_rate(l, 3) * area / 3
             b_ele(2) = -heating_rate(l, 3) * area / 3
             b_ele(3) = -heating_rate(l, 3) * area / 3
-
+            
             do i = 1, 3
                 ii = ele(l, i+1)
                 b(ii) = b(ii) + b_ele(i)
@@ -163,21 +163,22 @@
                 dpy = 0
                 dj = 0
                 heating_rate_m = 0
+                km = 0
+                mm = 0
                 call basis(phi, dpx, dpy, dj, z, e, xs, ys)
 
                 ! assemble coefficients 
                 do i = 1, 4
-                    km = km + material(ele(l, 6), 2) * phi(i)
-                    mm = mm + material(ele(l, 6), 1) * phi(i)
+                    km = km + material(ele(l, 6)-2, 1) * phi(i)
+                    mm = mm + material(ele(l, 6)-2, 3) * phi(i)
                     heating_rate_m = heating_rate_m + heating_rate(l, 3) * phi(i)
                 end do
 
-
                 do i = 1, 4
                     do j = 1, 4
-                    a_ele(i, j) = a_ele(i, j) + dj * (-km * (dpx(i) * dpx(j) + dpy(i) * dpy(j)) - mm * phi(i) * phi(j))
+                    a_ele(i, j) = a_ele(i, j) + dj * (-km * (dpx(i) * dpx(j) + dpy(i) * dpy(j)) - (mm * phi(i) * phi(j)))
                     end do
-                    b_ele(i) = b_ele(i) + dj * heating_rate_m * phi(i) 
+                    b_ele(i) = b_ele(i) - dj * heating_rate_m * phi(i) 
                 end do
             end do 
             do i = 1, 4
@@ -204,7 +205,6 @@
         a(ii, hbw+1) = 1
         b(ii) = 0
     end do 
-    
 
     ! solve for the unknowns
     call solve(1, a, b, n_node, hbw, n_node, 2*hbw+1)
@@ -232,6 +232,12 @@
     dyz = 0
     dxe = 0
     dye = 0
+    dpz = 0
+    dpe = 0
+    phi = 0
+    dpx = 0
+    dpy = 0
+    dj = 0
 
     phi(1) = (1-z)*(1-e)/4
     phi(2) = (1+z)*(1-e)/4
